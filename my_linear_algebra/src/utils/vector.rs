@@ -1,4 +1,4 @@
-use std::ops::{AddAssign, SubAssign, MulAssign};
+use std::ops::{Add, AddAssign, MulAssign, SubAssign};
 use std::fmt;
 
 pub struct Vector<K> {
@@ -51,4 +51,23 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
             self.data[i] *= a;
         }
     }
+}
+
+pub fn linear_combination<K>(vectors: &[Vector<K>], coefs: &[K]) -> Vector<K>
+where K: AddAssign + MulAssign + Copy + Default {
+    let size = vectors[0].size();
+    let mut result = vec![K::default(); size];
+
+    for (v, &scalar) in vectors.iter().zip(coefs.iter()) {
+        if v.size() != size {
+            panic!("All vectors must have the same size");
+        }
+        for i in 0..size {
+            let mut tmp = v.data[i];
+            tmp *= scalar;
+            result[i] += tmp;
+        }
+    }
+
+    Vector::from(result)
 }
