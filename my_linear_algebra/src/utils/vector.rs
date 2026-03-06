@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, MulAssign, SubAssign};
+use std::ops::{AddAssign, MulAssign, SubAssign};
 use std::fmt;
 
 pub struct Vector<K> {

@@ -21,9 +21,9 @@ pub fn ex01() {
     println!("{}", linear_combination(
         &vec![e1, e2, e3], 
         &vec![10., -2., 0.5]));
-    // // [10.0]
-    // // [-2.0]
-    // // [0.5]
+    // [10.0]
+    // [-2.0]
+    // [0.5]
     println!("{}", linear_combination(
         &vec![v1, v2], 
         &vec![10., -2.]));
