@@ -19,9 +19,14 @@ where K: fmt::Display {
 
 pub struct DisplayScalar<K>(pub K);
 
-impl<K: fmt::Display> fmt::Display for DisplayScalar<K> {
+impl fmt::Display for DisplayScalar<f32> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:.1}", self.0)
+        let i = self.0 as i32;
+        if self.0 == (i as f32) {
+            write!(f, "{:.1}", self.0)
+        } else {
+            write!(f, "{}", self.0)
+        }
     }
 }
 
@@ -103,5 +108,29 @@ impl Lerp<f32> for Vector<f32> {
             data.push(f32::lerp(u.data[i], v.data[i], t));
         }
         Vector::from(data)
+    }
+}
+
+impl Vector<f32> {
+    pub fn norm_1(&mut self) -> DisplayScalar<f32> {
+        let res = self.data.iter()
+            .fold(0.0f32, |acc, &x| acc + x.max(-x));
+        DisplayScalar(res)
+    }
+
+    pub fn norm(&mut self) -> DisplayScalar<f32> {
+        let squared_sum = self.data.iter()
+            .fold(0.0f64, |acc, &x| {
+                let x64 = x as f64;
+                x64.mul_add(x64, acc)
+            });
+        
+        DisplayScalar(squared_sum.powf(0.5) as f32)
+    }
+
+    pub fn norm_inf(&mut self) -> DisplayScalar<f32> {
+        let res = self.data.iter()
+            .fold(0.0f32, |a, &x| a.max(x.max(-x)));
+        DisplayScalar(res)
     }
 }
