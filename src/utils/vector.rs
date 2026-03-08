@@ -2,7 +2,7 @@ use std::ops::{AddAssign, MulAssign, SubAssign};
 use std::fmt;
 use super::Operations;
 use super::Lerp;
-
+#[derive(Clone)]
 pub struct Vector<K> {
     pub(crate) data: Vec<K>,
 }
@@ -133,4 +133,23 @@ impl Vector<f32> {
             .fold(0.0f32, |a, &x| a.max(x.max(-x)));
         DisplayScalar(res)
     }
+}
+
+pub fn angle_cos(u: &Vector<f32>, v: &Vector<f32>) -> DisplayScalar<f32> {
+    let mut u_clone = u.clone();
+    let mut v_clone = v.clone();
+
+    let dot_prod = u_clone.dot(v_clone.clone()).0;
+
+    let norm_u = u_clone.norm().0;
+    let norm_v = v_clone.norm().0;
+
+    if norm_u == 0.0 || norm_v == 0.0 {
+        return DisplayScalar(0.0);
+    }
+
+    let denominator = (norm_u as f64) * (norm_v as f64);
+    let res = (dot_prod as f64) / denominator;
+
+    DisplayScalar(res as f32)
 }
