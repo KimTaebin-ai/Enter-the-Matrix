@@ -1,8 +1,9 @@
 use std::ops::{AddAssign, SubAssign, MulAssign};
 use std::fmt;
+use super::{Vector, Lerp};
 
 pub struct Matrix<K> {
-    data: Vec<Vec<K>>,
+    pub(crate) data: Vec<Vec<K>>,
 
     // 여기서 예외처리를 잡아라
 }
@@ -62,4 +63,25 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
         }
     }
     
+}
+
+impl Lerp<f32> for Matrix<f32> {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        if u.data.len() != v.data.len() {
+            panic!("Matrix dimensions must match for lerp");
+        }
+
+        let mut res_rows = Vec::with_capacity(u.data.len());
+
+        for (row_u, row_v) in u.data.into_iter().zip(v.data.into_iter()) {
+            let u_vec = Vector::from(row_u);
+            let v_vec = Vector::from(row_v);
+            
+            let lerped_vector = Vector::lerp(u_vec, v_vec, t);
+            
+            res_rows.push(lerped_vector.data); 
+        }
+
+        Matrix { data: res_rows }
+    }
 }

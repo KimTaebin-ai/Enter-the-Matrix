@@ -5,3 +5,4 @@ pub mod operations;
 pub use vector::Vector;
 pub use matrix::Matrix;
 pub use operations::Operations;
+pub use operations::Lerp;

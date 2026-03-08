@@ -1,6 +1,7 @@
 use std::ops::{AddAssign, MulAssign, SubAssign};
 use std::fmt;
 use super::Operations;
+use super::Lerp;
 
 pub struct Vector<K> {
     pub(crate) data: Vec<K>,
@@ -68,4 +69,14 @@ where K: Copy + Default + Operations + AddAssign + SubAssign + MulAssign {
     }
 
     Vector::from(result)
+}
+
+impl Lerp<f32> for Vector<f32> {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        let mut data = Vec::with_capacity(u.data.len());
+        for i in 0..u.data.len() {
+            data.push(f32::lerp(u.data[i], v.data[i], t));
+        }
+        Vector::from(data)
+    }
 }

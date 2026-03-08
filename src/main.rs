@@ -23,6 +23,7 @@ fn main() {
     let tests: Vec<(&str, fn())> = vec![
         ("ex00: ", ex00),
         ("ex01: ", ex01),
+        ("ex02: ", ex02),
     ];
 
     for (title, test) in tests {
