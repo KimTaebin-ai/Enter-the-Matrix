@@ -17,6 +17,14 @@ where K: fmt::Display {
     }
 }
 
+pub struct DisplayScalar<K>(pub K);
+
+impl<K: fmt::Display> fmt::Display for DisplayScalar<K> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:.1}", self.0)
+    }
+}
+
 impl<K> Vector<K> 
 where K: AddAssign + SubAssign + MulAssign + Copy {
     pub fn from(data: Vec<K>) -> Self {
@@ -47,8 +55,25 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
             self.data[i] *= a;
         }
     }
+
 }
 
+
+impl<K> Vector<K>
+where K: AddAssign + SubAssign + MulAssign + Copy + Default + Operations + fmt::Display {
+    pub fn dot(&self, v: Vector<K>) -> DisplayScalar<K> {
+        if self.data.len() != v.data.len() {
+            panic!("Vector sizes must match for dot product");
+        }
+
+        let mut sum = K::default();
+        for i in 0..self.data.len() {
+            sum = K::fma(self.data[i], v.data[i], sum);
+        }
+
+        DisplayScalar(sum)
+    }
+}
 
 pub fn linear_combination<K>(vectors: &[Vector<K>], coefs: &[K]) -> Vector<K>
 where K: Copy + Default + Operations + AddAssign + SubAssign + MulAssign {
