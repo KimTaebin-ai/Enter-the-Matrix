@@ -153,3 +153,18 @@ pub fn angle_cos(u: &Vector<f32>, v: &Vector<f32>) -> DisplayScalar<f32> {
 
     DisplayScalar(res as f32)
 }
+
+pub fn cross_product(u: &Vector<f32>, v: &Vector<f32>) -> Vector<f32> {
+    if u.data.len() != 3 || v.data.len() != 3 {
+        panic!("Cross product is only defined for 3D vectors.");
+    }
+
+    let u_d = &u.data;
+    let v_d = &v.data;
+
+    let x = u_d[1].mul_add(v_d[2], -(u_d[2] * v_d[1]));
+    let y = u_d[2].mul_add(v_d[0], -(u_d[0] * v_d[2]));
+    let z = u_d[0].mul_add(v_d[1], -(u_d[1] * v_d[0]));
+
+    Vector::from(vec![x, y, z])
+}
