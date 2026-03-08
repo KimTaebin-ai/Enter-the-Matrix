@@ -3,6 +3,8 @@ use std::fmt;
 
 pub struct Matrix<K> {
     data: Vec<Vec<K>>,
+
+    // 여기서 예외처리를 잡아라
 }
 
 impl<K> fmt::Display for Matrix<K>
