@@ -1,5 +1,7 @@
 use std::ops::{AddAssign, SubAssign, MulAssign};
 use std::fmt;
+use crate::utils::Operations;
+
 use super::{Vector, Lerp};
 
 pub struct Matrix<K> {
@@ -83,5 +85,55 @@ impl Lerp<f32> for Matrix<f32> {
         }
 
         Matrix { data: res_rows }
+    }
+}
+
+impl<K> Matrix<K> 
+where K: Default + Operations + Copy + AddAssign + MulAssign + SubAssign {
+    // Matrix * Vector = Vector
+    pub fn mul_vec(&self, vec: &Vector<K>) -> Vector<K> {
+        if self.data.is_empty() || self.data[0].len() != vec.data.len() {
+            panic!("Matrix columns must match vector size");
+        }
+
+        let mut result_data = Vec::with_capacity(self.data.len());
+
+        for row in &self.data {
+            let mut sum = K::default();
+            for (i, &val) in row.iter().enumerate() {
+                sum = K::fma(val, vec.data[i], sum);
+            }
+            result_data.push(sum);
+        }
+
+        Vector::from(result_data)
+    }
+
+    // Matrix * Matrix = Matrix
+    pub fn mul_mat(&self, mat: &Matrix<K>) -> Matrix<K> {
+        let rows_a = self.data.len();
+        let cols_a = if rows_a > 0 { self.data[0].len() } else { 0 };
+        let rows_b = mat.data.len();
+        let cols_b = if rows_b > 0 { mat.data[0].len() } else { 0 };
+
+        if cols_a != rows_b {
+            panic!("Matrix shapes are incompatible for multiplication");
+        }
+
+        let mut res_data = Vec::with_capacity(rows_a);
+
+        for i in 0..rows_a {
+            let mut new_row = Vec::with_capacity(cols_b);
+            for j in 0..cols_b {
+                let mut sum = K::default();
+                for k in 0..cols_a {
+                    sum = K::fma(self.data[i][k], mat.data[k][j], sum);
+                }
+                new_row.push(sum);
+            }
+            res_data.push(new_row);
+        }
+
+        Matrix { data: res_data }
     }
 }
