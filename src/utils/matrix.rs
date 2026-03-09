@@ -90,7 +90,7 @@ impl Lerp<f32> for Matrix<f32> {
 }
 
 impl<K> Matrix<K> 
-where K: Default + Operations + Copy + AddAssign + MulAssign + SubAssign {
+where K: Default + Clone + Operations + Copy + AddAssign + MulAssign + SubAssign + std::fmt::Debug {
     // Matrix * Vector = Vector
     pub fn mul_vec(&self, vec: &Vector<K>) -> Vector<K> {
         if self.data.is_empty() || self.data[0].len() != vec.data.len() {
@@ -151,5 +151,21 @@ where K: Default + Operations + Copy + AddAssign + MulAssign + SubAssign {
         }
 
         DisplayScalar(sum)
+    }
+
+    pub fn transpose(&self) -> Matrix<K> {
+        let rows = self.data.len();
+        if rows == 0 { return Matrix { data: vec![] }; }
+        let cols = self.data[0].len();
+
+        let mut result = vec![Vec::with_capacity(rows); cols];
+
+        for i in 0..rows {
+            for j in 0..cols {
+                result[j].push(self.data[i][j].clone());
+            }
+        }
+
+        Matrix { data: result }
     }
 }
