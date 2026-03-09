@@ -13,7 +13,7 @@ plexity O(nm))
 complexity O(nm + mp + np))
  */
 
- use crate::utils::{Vector, Matrix};
+use crate::utils::{Vector, Matrix};
 
 pub fn ex07() {
     let u = Matrix::from([

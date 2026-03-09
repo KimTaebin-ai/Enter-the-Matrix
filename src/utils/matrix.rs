@@ -1,6 +1,7 @@
 use std::ops::{AddAssign, SubAssign, MulAssign};
 use std::fmt;
 use crate::utils::Operations;
+use crate::utils::vector::DisplayScalar;
 
 use super::{Vector, Lerp};
 
@@ -135,5 +136,20 @@ where K: Default + Operations + Copy + AddAssign + MulAssign + SubAssign {
         }
 
         Matrix { data: res_data }
+    }
+
+    pub fn trace(&self) -> DisplayScalar<K> {
+        if self.data.is_empty() || self.data[0].is_empty() {
+            return DisplayScalar(K::default());
+        }
+
+        let mut sum = K::default();
+        let size = self.data.len().min(self.data[0].len());
+
+        for i in 0..size {
+            sum += self.data[i][i];
+        }
+
+        DisplayScalar(sum)
     }
 }
