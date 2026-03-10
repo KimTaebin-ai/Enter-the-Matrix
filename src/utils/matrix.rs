@@ -5,19 +5,28 @@ use crate::utils::vector::DisplayScalar;
 
 use super::{Vector, Lerp};
 
+
+#[derive(Clone)]
 pub struct Matrix<K> {
     pub(crate) data: Vec<Vec<K>>,
-
-    // 여기서 예외처리를 잡아라
 }
 
 impl<K> fmt::Display for Matrix<K>
-where K: fmt::Display {
+where 
+    K: fmt::Display + Into<f32> + Copy
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for row in &self.data {
             write!(f, "[")?;
-            for (i, val) in row.iter().enumerate() {
-                write!(f, "{:.1}", val)?;
+            for (i, &val) in row.iter().enumerate() {
+                let v = val.into() as f32;
+                
+                if v == (v as i32) as f32 {
+                    write!(f, "{:.1}", v)?;
+                } else {
+                    write!(f, "{}", v)?;
+                }
+
                 if i < row.len() - 1 {
                     write!(f, ", ")?;
                 }
@@ -167,5 +176,58 @@ where K: Default + Clone + Operations + Copy + AddAssign + MulAssign + SubAssign
         }
 
         Matrix { data: result }
+    }
+}
+
+impl Matrix<f32> {
+    pub fn row_echelon(&self) -> Matrix<f32> {
+        let mut res = self.clone();
+        let rows = res.data.len();
+        if rows == 0 { return res; }
+        let cols = res.data[0].len();
+
+        let mut pivot_row = 0;
+        let mut pivot_col = 0;
+
+        while pivot_row < rows && pivot_col < cols {
+            // 현재 열에서 피벗 후보 찾기 (절댓값이 가장 큰 행 선택)
+            let mut i_max = pivot_row;
+            for i in pivot_row + 1..rows {
+                if res.data[i][pivot_col].abs() > res.data[i_max][pivot_col].abs() {
+                    i_max = i;
+                }
+            }
+
+            // 피벗이 0이면 (또는 아주 작으면) 현재 열은 건너뛰고 다음 열로
+            if res.data[i_max][pivot_col].abs() < 1e-9 {
+                pivot_col += 1;
+                continue;
+            }
+
+            // 행 교환 (Swap)
+            res.data.swap(pivot_row, i_max);
+
+            // 피벗 행 정규화 (선행 원소를 1로 만들기)
+            let divisor = res.data[pivot_row][pivot_col];
+            for j in pivot_col..cols {
+                res.data[pivot_row][j] /= divisor;
+            }
+
+            // 피벗 열의 다른 행들을 모두 0으로 소거 (RREF 과정)
+            for i in 0..rows {
+                if i != pivot_row {
+                    let factor = res.data[i][pivot_col];
+                    for j in pivot_col..cols {
+                        // R_i = R_i - factor * R_pivot
+                        res.data[i][j] -= factor * res.data[pivot_row][j];
+                    }
+                }
+            }
+
+            pivot_row += 1;
+            pivot_col += 1;
+        }
+
+        res
     }
 }

@@ -8,6 +8,7 @@ pub mod ex06;
 pub mod ex07;
 pub mod ex08;
 pub mod ex09;
+pub mod ex10;
 
 pub use ex00::ex00;
 pub use ex01::ex01;
@@ -19,3 +20,4 @@ pub use ex06::ex06;
 pub use ex07::ex07;
 pub use ex08::ex08;
 pub use ex09::ex09;
+pub use ex10::ex10;
