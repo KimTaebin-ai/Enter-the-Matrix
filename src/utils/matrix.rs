@@ -285,4 +285,65 @@ impl Matrix<f32> {
         DisplayScalar(det)
     }
 
+    pub fn inverse(&self) -> Matrix<f32> {
+        let n = self.data.len();
+        // 정사각 행렬 확인
+        if n == 0 || n != self.data[0].len() {
+            panic!("Inverse is only defined for square matrices.");
+        }
+
+        // 행렬 [A | I] 만들기
+        let mut augmented = vec![vec![0.0; 2 * n]; n];
+        for i in 0..n {
+            for j in 0..n {
+                augmented[i][j] = self.data[i][j]; // 왼쪽은 A
+            }
+            augmented[i][i + n] = 1.0; // 오른쪽은 단위 행렬 I
+        }
+
+        // gauss jordan elimination 진행
+        for i in 0..n {
+            // 피벗 찾기
+            let mut pivot = i;
+            for k in i + 1..n {
+                if augmented[k][i].abs() > augmented[pivot][i].abs() {
+                    pivot = k;
+                }
+            }
+
+            // 피벗이 0이면 역행렬이 존재하지 않음 (Singular matrix)
+            if augmented[pivot][i].abs() < 1e-9 {
+                panic!("Matrix is singular and cannot be inverted.");
+            }
+
+            // 행 교환
+            augmented.swap(i, pivot);
+
+            // 피벗 행 정규화 (A[i][i]를 1로 만들기)
+            let divisor = augmented[i][i];
+            for j in i..2 * n {
+                augmented[i][j] /= divisor;
+            }
+
+            // 다른 모든 행 소거 (피벗 열을 0으로 만들기)
+            for k in 0..n {
+                if k != i {
+                    let factor = augmented[k][i];
+                    for j in i..2 * n {
+                        augmented[k][j] = (-factor).mul_add(augmented[i][j], augmented[k][j])
+                    }
+                }
+            }
+        }
+
+        // [I | A^-1] 에서 결과 추출
+        let mut inv_data = vec![vec![0.0; n]; n];
+        for i in 0..n {
+            for j in 0..n {
+                inv_data[i][j] = augmented[i][j + n];
+            }
+        }
+
+        Matrix { data: inv_data }
+    }
 }
