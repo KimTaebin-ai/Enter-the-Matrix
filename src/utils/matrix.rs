@@ -230,4 +230,59 @@ impl Matrix<f32> {
 
         res
     }
+    
+    pub fn determinant(&self) -> DisplayScalar<f32> {
+        let rows = self.data.len();
+        let cols = if rows > 0 { self.data[0].len() } else { 0 };
+
+        // 행렬식은 정사각 행렬에서만 정의됩니다.
+        if rows != cols {
+            panic!("Determinant is only defined for square matrices.");
+        }
+        if rows == 0 { return DisplayScalar(1.0); } // 공집합 행렬의 행렬식은 관습적으로 1
+
+        let mut res = self.clone();
+        let mut det = 1.0;
+        let mut pivot_row = 0;
+
+        for j in 0..cols {
+            if pivot_row >= rows { break; }
+
+            // 피벗 찾기
+            let mut i_max = pivot_row;
+            for i in pivot_row + 1..rows {
+                if res.data[i][j].abs() > res.data[i_max][j].abs() {
+                    i_max = i;
+                }
+            }
+
+            // 피벗이 0이면 행렬식은 0 (부피가 없는 상태)
+            if res.data[i_max][j].abs() < 1e-9 {
+                return DisplayScalar(0.0);
+            }
+
+            // 행 교환 시 부호 반전
+            if i_max != pivot_row {
+                res.data.swap(pivot_row, i_max);
+                det *= -1.0;
+            }
+
+            // 주대각선 성분의 곱 추적
+            // 대각선 원소를 그대로 곱함
+            let pivot_val = res.data[pivot_row][j];
+            det *= pivot_val;
+
+            // 아래쪽 행들만 소거
+            for i in pivot_row + 1..rows {
+                let factor = res.data[i][j] / pivot_val;
+                for k in j..cols {
+                    res.data[i][k] -= factor * res.data[pivot_row][k];
+                }
+            }
+            pivot_row += 1;
+        }
+
+        DisplayScalar(det)
+    }
+
 }

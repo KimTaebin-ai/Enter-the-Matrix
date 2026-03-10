@@ -32,6 +32,7 @@ fn main() {
         ("ex08: ", ex08),
         ("ex09: ", ex09),
         ("ex10: ", ex10),
+        ("ex11: ", ex11),
     ];
 
     for (title, test) in tests {
