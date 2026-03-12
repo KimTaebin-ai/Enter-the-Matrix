@@ -177,6 +177,14 @@ where K: Default + Clone + Operations + Copy + AddAssign + MulAssign + SubAssign
 
         Matrix { data: result }
     }
+
+    pub fn zero(rows: usize, cols: usize) -> Self {
+        let mut data = Vec::with_capacity(rows);
+        for _ in 0..rows {
+            data.push(vec![K::default(); cols]);
+        }
+        Matrix { data }
+    }
 }
 
 impl Matrix<f32> {
@@ -396,5 +404,19 @@ impl Matrix<f32> {
 
         // 최종적으로 생성된 피벗의 개수가 곧 Rank임
         pivot_row
+    }
+
+    pub fn projection(fov: f32, ratio: f32, near: f32, far: f32) -> Self {
+        let f = 1.0 / (fov * std::f32::consts::PI / 360.0).tan();
+        let mut m = Matrix::zero(4, 4);
+
+        m.data[0][0] = f / ratio;
+        m.data[1][1] = f;
+        
+        m.data[2][2] = far / (near - far);
+        m.data[2][3] = -1.0;
+        m.data[3][2] = (far * near) / (near - far);
+        
+        m
     }
 }
