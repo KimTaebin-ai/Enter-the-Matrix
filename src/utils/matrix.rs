@@ -346,4 +346,55 @@ impl Matrix<f32> {
 
         Matrix { data: inv_data }
     }
+
+    pub fn rank(&self) -> usize {
+        // 가우스 소거법 수행용
+        let mut temp = self.data.clone();
+        
+        let rows = temp.len();
+        if rows == 0 { return 0; }
+        let cols = temp[0].len();
+        let mut pivot_row = 0;
+
+        for j in 0..cols {
+            if pivot_row >= rows {
+                break;
+            }
+
+            // 현재 열에서 가장 큰 절대값을 가진 행을 찾음 (Partial Pivoting)
+            let mut max_val = 0.0;
+            let mut max_row = pivot_row;
+            for i in pivot_row..rows {
+                let abs_val = temp[i][j].abs();
+                if abs_val > max_val {
+                    max_val = abs_val;
+                    max_row = i;
+                }
+            }
+
+            // 피벗이 0에 가깝다면 (수치적 0), 해당 열은 건너뜀
+            if max_val < 1e-9 {
+                continue;
+            }
+
+            // 현재 피벗 행과 최대값 행을 교체
+            temp.swap(pivot_row, max_row);
+
+            // 가우스 소거법 적용: 피벗 아래 행들을 0으로 만듦
+            for i in (pivot_row + 1)..rows {
+                let factor = temp[i][j] / temp[pivot_row][j];
+                for k in j..cols {
+                    // FMA 연산 활용: data[i][k] = data[i][k] - factor * data[pivot_row][k]
+                    // (a * b + c) 형태를 위해 -factor를 전달
+                    temp[i][k] = (-factor).mul_add(temp[pivot_row][k], temp[i][k]);
+                }
+            }
+
+            // 다음 피벗 행으로 이동
+            pivot_row += 1;
+        }
+
+        // 최종적으로 생성된 피벗의 개수가 곧 Rank임
+        pivot_row
+    }
 }

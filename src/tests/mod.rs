@@ -11,6 +11,7 @@ pub mod ex09;
 pub mod ex10;
 pub mod ex11;
 pub mod ex12;
+pub mod ex13;
 
 pub use ex00::ex00;
 pub use ex01::ex01;
@@ -25,3 +26,4 @@ pub use ex09::ex09;
 pub use ex10::ex10;
 pub use ex11::ex11;
 pub use ex12::ex12;
+pub use ex13::ex13;
