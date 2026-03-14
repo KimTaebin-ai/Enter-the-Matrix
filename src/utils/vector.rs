@@ -1,5 +1,5 @@
 use std::ops::{AddAssign, MulAssign, SubAssign};
-use std::ops::{Add, Sub, Mul};
+use std::ops::{Add, Sub, Mul, Div};
 use std::fmt;
 use super::Operations;
 use super::Lerp;
@@ -88,13 +88,20 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
 
 impl<K> Vector<K>
 where K: AddAssign + SubAssign + MulAssign + Copy + Default + Operations + fmt::Display {
-    pub fn dot(&self, v: Vector<K>) -> DisplayScalar<K> {
-        if self.data.len() != v.data.len() {
-            panic!("Vector sizes must match for dot product");
+    pub fn dot(&self, v: &Vector<K>) -> DisplayScalar<K> {
+        let self_size = self.size();
+        let other_size = v.size();
+
+        if self_size != other_size {
+            panic!(
+                "Vector sizes must match for dot product: {} != {}", 
+                self_size, other_size
+            );
         }
 
         let mut sum = K::default();
-        for i in 0..self.data.len() {
+        for i in 0..self_size {
+            // sum = self[i] * v[i] + sum
             sum = K::fma(self.data[i], v.data[i], sum);
         }
 
@@ -158,47 +165,62 @@ where
     }
 }
 
-impl Vector<f32> {
-    pub fn norm_1(&mut self) -> DisplayScalar<f32> {
-        let res = self.data.iter()
-            .fold(0.0f32, |acc, &x| acc + x.max(-x));
+impl<K> Vector<K>
+where 
+    K: Copy + Default + Operations + PartialOrd + Add<Output = K> + Sub<Output = K>
+{
+    pub fn norm_1(&self) -> DisplayScalar<K> {
+        let mut res = K::default();
+        for &val in &self.data {
+            // res = 1 * |val| + res
+            res = K::fma(K::default(), K::default(), res + val.abs());
+        }
         DisplayScalar(res)
     }
 
-    pub fn norm(&mut self) -> DisplayScalar<f32> {
-        let squared_sum = self.data.iter()
-            .fold(0.0f64, |acc, &x| {
-                let x64 = x as f64;
-                x64.mul_add(x64, acc)
-            });
-        
-        DisplayScalar(squared_sum.powf(0.5) as f32)
+    pub fn norm(&self) -> DisplayScalar<K> {
+        let mut squared_sum = K::default();
+        for &val in &self.data {
+            // squared_sum = val * val + squared_sum
+            squared_sum = K::fma(val, val, squared_sum);
+        }
+        DisplayScalar(squared_sum.sqrt())
     }
 
-    pub fn norm_inf(&mut self) -> DisplayScalar<f32> {
-        let res = self.data.iter()
-            .fold(0.0f32, |a, &x| a.max(x.max(-x)));
+    pub fn norm_inf(&self) -> DisplayScalar<K> {
+        let mut res = K::default();
+        for &val in &self.data {
+            let abs_val = val.abs();
+            if abs_val > res {
+                res = abs_val;
+            }
+        }
         DisplayScalar(res)
     }
 }
 
-pub fn angle_cos(u: &Vector<f32>, v: &Vector<f32>) -> DisplayScalar<f32> {
-    let mut u_clone = u.clone();
-    let mut v_clone = v.clone();
+pub fn angle_cos<K>(u: &Vector<K>, v: &Vector<K>) -> DisplayScalar<K> 
+where 
+    K: Copy + Default + Operations + PartialOrd +
+    AddAssign + SubAssign + MulAssign +
+    std::fmt::Display +
+    Add<Output = K> + Sub<Output = K> + Div<Output = K> + Mul<Output = K>
+{
+    let dot_prod = u.dot(v).0;
 
-    let dot_prod = u_clone.dot(v_clone.clone()).0;
+    let norm_u = u.norm().0;
+    let norm_v = v.norm().0;
 
-    let norm_u = u_clone.norm().0;
-    let norm_v = v_clone.norm().0;
-
-    if norm_u == 0.0 || norm_v == 0.0 {
-        return DisplayScalar(0.0);
+    // norm이 0이면 분모가 0이 되어버림
+    let zero = K::default();
+    if norm_u == zero || norm_v == zero {
+        return DisplayScalar(zero);
     }
 
-    let denominator = (norm_u as f64) * (norm_v as f64);
-    let res = (dot_prod as f64) / denominator;
+    // 코사인 값 도출: (u · v) / (||u|| * ||v||)
+    let res = dot_prod / (norm_u * norm_v);
 
-    DisplayScalar(res as f32)
+    DisplayScalar(res)
 }
 
 pub fn cross_product(u: &Vector<f32>, v: &Vector<f32>) -> Vector<f32> {

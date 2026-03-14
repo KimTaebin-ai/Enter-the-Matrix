@@ -1,4 +1,5 @@
 use std::ops::{AddAssign, SubAssign, MulAssign};
+use std::ops::{Sub};
 use std::fmt;
 use crate::utils::Operations;
 use crate::utils::vector::DisplayScalar;
@@ -115,22 +116,30 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
     
 }
 
-impl Lerp<f32> for Matrix<f32> {
-    fn lerp(u: Self, v: Self, t: f32) -> Self {
-        if u.data.len() != v.data.len() {
-            panic!("Matrix dimensions must match for lerp");
+impl<K> Lerp<K> for Matrix<K> 
+where 
+    K: Copy + Default + Operations + AddAssign<K> + SubAssign<K> + MulAssign<K> + Sub<Output = K> 
+{
+    fn lerp(u: Self, v: Self, t: K) -> Self {
+        let u_shape = u.shape();
+        let v_shape = v.shape();
+
+        if u_shape != v_shape {
+            panic!(
+                "Matrix shapes must match for lerp: {:?} != {:?}", 
+                u_shape, v_shape
+            );
         }
 
-        let mut res_rows = Vec::with_capacity(u.data.len());
-
-        for (row_u, row_v) in u.data.into_iter().zip(v.data.into_iter()) {
-            let u_vec = Vector::from(row_u);
-            let v_vec = Vector::from(row_v);
-            
-            let lerped_vector = Vector::lerp(u_vec, v_vec, t);
-            
-            res_rows.push(lerped_vector.data); 
-        }
+        // 각 행별로 Vector::lerp 수행
+        let res_rows = u.data.into_iter()
+            .zip(v.data.into_iter())
+            .map(|(row_u, row_v)| {
+                let u_vec = Vector::from(row_u);
+                let v_vec = Vector::from(row_v);
+                Vector::lerp(u_vec, v_vec, t).data
+            })
+            .collect();
 
         Matrix { data: res_rows }
     }

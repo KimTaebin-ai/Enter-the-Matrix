@@ -1,10 +1,20 @@
-pub trait Operations {
+pub trait Operations: Sized {
     fn fma(a: Self, b: Self, c: Self) -> Self;
+    fn abs(self) -> Self;
+    fn sqrt(self) -> Self;
 }
 
 impl Operations for f32 {
     fn fma(a: Self, b: Self, c: Self) -> Self {
         a.mul_add(b, c)
+    }
+
+    fn abs(self) -> Self {
+        self.abs()
+    }
+
+    fn sqrt(self) -> Self {
+        self.sqrt()
     }
 }
 
