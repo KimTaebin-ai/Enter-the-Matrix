@@ -1,5 +1,5 @@
 use std::ops::{AddAssign, MulAssign, SubAssign};
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Add, Sub, Mul, Div, Neg};
 use std::fmt;
 use super::Operations;
 use super::Lerp;
@@ -223,17 +223,26 @@ where
     DisplayScalar(res)
 }
 
-pub fn cross_product(u: &Vector<f32>, v: &Vector<f32>) -> Vector<f32> {
-    if u.data.len() != 3 || v.data.len() != 3 {
-        panic!("Cross product is only defined for 3D vectors.");
+pub fn cross_product<K>(u: &Vector<K>, v: &Vector<K>) -> Vector<K> 
+where 
+    K: Copy + Default + Operations + 
+    AddAssign + SubAssign + MulAssign +
+    Mul<Output = K> + Sub<Output = K> + Neg<Output = K>
+{
+    if u.size() != 3 || v.size() != 3 {
+        panic!(
+            "Cross product is only defined for 3D vectors: u.size={}, v.size={}", 
+            u.size(), v.size()
+        );
     }
 
     let u_d = &u.data;
     let v_d = &v.data;
 
-    let x = u_d[1].mul_add(v_d[2], -(u_d[2] * v_d[1]));
-    let y = u_d[2].mul_add(v_d[0], -(u_d[0] * v_d[2]));
-    let z = u_d[0].mul_add(v_d[1], -(u_d[1] * v_d[0]));
+    // 공식: (u2*v3 - u3*v2, u3*v1 - u1*v3, u1*v2 - u2*v1)   
+    let x = K::fma(u_d[1], v_d[2], -(u_d[2] * v_d[1]));
+    let y = K::fma(u_d[2], v_d[0], -(u_d[0] * v_d[2]));
+    let z = K::fma(u_d[0], v_d[1], -(u_d[1] * v_d[0]));
 
     Vector::from(vec![x, y, z])
 }
