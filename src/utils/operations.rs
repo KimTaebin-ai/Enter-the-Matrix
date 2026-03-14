@@ -2,6 +2,7 @@ pub trait Operations: Sized {
     fn fma(a: Self, b: Self, c: Self) -> Self;
     fn abs(self) -> Self;
     fn sqrt(self) -> Self;
+    fn from_f32(val: f32) -> Self;
 }
 
 impl Operations for f32 {
@@ -16,6 +17,8 @@ impl Operations for f32 {
     fn sqrt(self) -> Self {
         self.sqrt()
     }
+
+    fn from_f32(val: f32) -> Self { val }
 }
 
 pub trait Lerp<T> {
