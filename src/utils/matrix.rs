@@ -60,16 +60,22 @@ impl<K> Matrix<K> {
     }
 }
 
+impl<K> Matrix<K> {
+    pub fn from<I, J>(data: I) -> Self 
+    where 
+        I: IntoIterator<Item = J>,
+        J: IntoIterator<Item = K>,
+    {
+        let res_data: Vec<Vec<K>> = data.into_iter()
+            .map(|row| row.into_iter().collect())
+            .collect();
+        
+        Matrix { data: res_data }
+    }
+}
+
 impl<K> Matrix<K> 
 where K: AddAssign + SubAssign + MulAssign + Copy {
-    pub fn from<const N:usize, const M:usize>(data: [[K; M]; N]) -> Self {
-        let mut matrix_data = Vec::with_capacity(N);
-        for row in data {
-            matrix_data.push(row.to_vec());
-        }
-        Matrix { data: matrix_data }
-    }
-
     pub fn add(&mut self, v: Matrix<K>) {
         let self_shape = self.shape();
         let other_shape = v.shape();
@@ -146,65 +152,79 @@ where
 }
 
 impl<K> Matrix<K> 
-where K: Default + Clone + Operations + Copy + AddAssign + MulAssign + SubAssign + std::fmt::Debug {
+where K: Default + Clone + Operations + Copy + 
+fmt::Display +
+AddAssign + MulAssign + SubAssign + std::fmt::Debug 
+{
     // Matrix * Vector = Vector
     pub fn mul_vec(&self, vec: &Vector<K>) -> Vector<K> {
-        if self.data.is_empty() || self.data[0].len() != vec.data.len() {
-            panic!("Matrix columns must match vector size");
+        let (rows, cols) = self.shape();
+        let vec_size = vec.size();
+
+        // 행렬의 열 개수 == 벡터의 크기
+        if cols != vec_size {
+            panic!(
+                "Invalid dimensions for Matrix-Vector multiplication: Matrix({}x{}), Vector({})",
+                rows, cols, vec_size
+            );
         }
 
-        let mut result_data = Vec::with_capacity(self.data.len());
-
-        for row in &self.data {
-            let mut sum = K::default();
-            for (i, &val) in row.iter().enumerate() {
-                sum = K::fma(val, vec.data[i], sum);
-            }
-            result_data.push(sum);
-        }
+        let result_data = self.data.iter()
+            .map(|row_data| {
+                // 행 데이터 -> 임시 벡터
+                let row_vec = Vector::from(row_data.clone()); 
+                // 행 벡터와 입력 벡터의 내적 수행
+                row_vec.dot(vec).0
+            })
+            .collect();
 
         Vector::from(result_data)
     }
 
     // Matrix * Matrix = Matrix
     pub fn mul_mat(&self, mat: &Matrix<K>) -> Matrix<K> {
-        let rows_a = self.data.len();
-        let cols_a = if rows_a > 0 { self.data[0].len() } else { 0 };
-        let rows_b = mat.data.len();
-        let cols_b = if rows_b > 0 { mat.data[0].len() } else { 0 };
+        let (rows_a, cols_a) = self.shape();
+        let (rows_b, cols_b) = mat.shape();
 
+        // A의 열 == B의 행
         if cols_a != rows_b {
-            panic!("Matrix shapes are incompatible for multiplication");
+            panic!(
+                "Matrix shapes incompatible for multiplication: ({}x{}) * ({}x{})", 
+                rows_a, cols_a, rows_b, cols_b
+            );
         }
 
-        let mut res_data = Vec::with_capacity(rows_a);
+        // 행렬 B를 전치
+        let mat_t = mat.transpose();
 
-        for i in 0..rows_a {
-            let mut new_row = Vec::with_capacity(cols_b);
-            for j in 0..cols_b {
-                let mut sum = K::default();
-                for k in 0..cols_a {
-                    sum = K::fma(self.data[i][k], mat.data[k][j], sum);
-                }
-                new_row.push(sum);
-            }
-            res_data.push(new_row);
-        }
+        let res_data: Vec<Vec<K>> = self.data.iter()
+            .map(|row_a_data| {
+                let row_a_vec = Vector::from(row_a_data.clone());
+                
+                // 전치된 B의 각 행(원래 B의 열)과 내적 수행
+                mat_t.data.iter()
+                    .map(|row_b_t_data| {
+                        let row_b_t_vec = Vector::from(row_b_t_data.clone());
+                        row_a_vec.dot(&row_b_t_vec).0 // 내적 결과 스칼라 추출
+                    })
+                    .collect::<Vec<K>>()
+            })
+            .collect();
 
-        Matrix { data: res_data }
+        Matrix::from(res_data)
     }
 
     pub fn trace(&self) -> DisplayScalar<K> {
-        if self.data.is_empty() || self.data[0].is_empty() {
-            return DisplayScalar(K::default());
+        if !self.is_square() {
+            panic!("Trace is only defined for square matrices.");
         }
 
-        let mut sum = K::default();
-        let size = self.data.len().min(self.data[0].len());
-
-        for i in 0..size {
-            sum += self.data[i][i];
-        }
+        let sum = self.data.iter()
+            .enumerate()
+            .fold(K::default(), |mut acc, (i, row)| {
+                acc += row[i];
+                acc
+            });
 
         DisplayScalar(sum)
     }
