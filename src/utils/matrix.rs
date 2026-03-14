@@ -6,14 +6,6 @@ use crate::utils::vector::DisplayScalar;
 
 use super::{Vector, Lerp};
 
-/**
- * We recommend you to implement some utility functions, such as:
-• A function to return the size/shape of a vector/matrix.
-• A function to tell if a matrix is square.
-• A function to print a vector/matrix on the standard output.
-• A function to reshape a vector into a matrix, and vice-versa.
- */
-
 #[derive(Clone)]
 pub struct Matrix<K> {
     pub(crate) data: Vec<Vec<K>>,
@@ -21,19 +13,13 @@ pub struct Matrix<K> {
 
 impl<K> fmt::Display for Matrix<K>
 where 
-    K: fmt::Display + Into<f32> + Copy
+    K: Operations
 {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for row in &self.data {
             write!(f, "[")?;
-            for (i, &val) in row.iter().enumerate() {
-                let v = val.into() as f32;
-                
-                if v == (v as i32) as f32 {
-                    write!(f, "{:.1}", v)?;
-                } else {
-                    write!(f, "{}", v)?;
-                }
+            for (i, val) in row.iter().enumerate() {
+                write!(f, "{}", val.fmt_precision())?;
 
                 if i < row.len() - 1 {
                     write!(f, ", ")?;
@@ -60,17 +46,21 @@ impl<K> Matrix<K> {
     }
 }
 
-impl<K> Matrix<K> {
-    pub fn from<I, J>(data: I) -> Self 
-    where 
-        I: IntoIterator<Item = J>,
-        J: IntoIterator<Item = K>,
-    {
-        let res_data: Vec<Vec<K>> = data.into_iter()
-            .map(|row| row.into_iter().collect())
-            .collect();
-        
+impl<K, const R: usize, const C: usize> From<[[K; C]; R]> for Matrix<K> 
+where K: Clone
+{
+    fn from(data: [[K; C]; R]) -> Self {
+        let mut res_data = Vec::with_capacity(R);
+        for row in data.into_iter() {
+            res_data.push(row.to_vec());
+        }
         Matrix { data: res_data }
+    }
+}
+
+impl<K> From<Vec<Vec<K>>> for Matrix<K> {
+    fn from(data: Vec<Vec<K>>) -> Self {
+        Matrix { data }
     }
 }
 
@@ -137,7 +127,6 @@ where
             );
         }
 
-        // 각 행별로 Vector::lerp 수행
         let res_rows = u.data.into_iter()
             .zip(v.data.into_iter())
             .map(|(row_u, row_v)| {
