@@ -45,7 +45,7 @@ fn run_complex_tests() {
         ("ex06 (Complex): ", bonus_ex06), ("ex07 (Complex): ", bonus_ex07),
         ("ex08 (Complex): ", bonus_ex08), ("ex09 (Complex): ", bonus_ex09),
         ("ex10 (Complex): ", bonus_ex10), ("ex11 (Complex): ", bonus_ex11),
-        ("ex12 (Complex): ", bonus_ex12),
+        ("ex12 (Complex): ", bonus_ex12), ("ex13 (Complex): ", bonus_ex13),
     ];
 
     for (title, test) in bonus_tests {

@@ -11,6 +11,7 @@ pub mod bonus_ex09;
 pub mod bonus_ex10;
 pub mod bonus_ex11;
 pub mod bonus_ex12;
+pub mod bonus_ex13;
 
 pub use bonus_ex00::bonus_ex00;
 pub use bonus_ex01::bonus_ex01;
@@ -25,3 +26,4 @@ pub use bonus_ex09::bonus_ex09;
 pub use bonus_ex10::bonus_ex10;
 pub use bonus_ex11::bonus_ex11;
 pub use bonus_ex12::bonus_ex12;
+pub use bonus_ex13::bonus_ex13;
