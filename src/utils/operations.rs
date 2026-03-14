@@ -6,6 +6,8 @@ pub trait Operations: Sized {
     fn sqrt(self) -> Self;
     fn from_f32(val: f32) -> Self;
     fn fmt_precision(&self) -> String;
+    fn conj(self) -> Self;
+    fn get_re(self) -> f32;
 }
 
 impl Operations for f32 {
@@ -24,10 +26,22 @@ impl Operations for f32 {
     fn from_f32(val: f32) -> Self { val }
 
     fn fmt_precision(&self) -> String {
-        format!("{:.1}", self)
+        let i = *self as i32;
+        if *self == (i as f32) {
+            format!("{:.1}", self)
+        } else {
+            format!("{}", self)
+        }
+    }
+
+    fn conj(self) -> Self {
+        self
+    }
+
+    fn get_re(self) -> f32 {
+        self
     }
 }
-
 
 impl Operations for Complex {
     fn fma(a: Self, b: Self, c: Self) -> Self {
@@ -60,8 +74,31 @@ impl Operations for Complex {
         }
     }
 
+    // fn fmt_precision(&self) -> String {
+    //     format!("{:.1} + {:.1}i", self.re, self.im)
+    // }
+
+
     fn fmt_precision(&self) -> String {
-        format!("{:.1} + {:.1}i", self.re, self.im)
+        let is_re_int = self.re.fract() == 0.0;
+        let is_im_int = self.im.fract() == 0.0;
+
+        if is_re_int && is_im_int {
+            format!("{:.1} + {:.1}i", self.re, self.im)
+        } else {
+            format!("{} + {}i", self.re, self.im)
+        }
+    }
+
+    fn conj(self) -> Self {
+        Self {
+            re: self.re,
+            im: -self.im,
+        }
+    }
+
+    fn get_re(self) -> f32 {
+        self.re
     }
 }
 
@@ -72,5 +109,13 @@ pub trait Lerp<T> {
 impl Lerp<f32> for f32 {
     fn lerp(u: Self, v: Self, t: f32) -> Self {
         t.mul_add(v - u, u)
+    }
+}
+
+impl Lerp<f32> for Complex {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        // 공식: u + (v - u) * t
+        // t를 Complex::from_f32(t)로 변환하여 복소수 곱셈 수행
+        Complex::from_f32(t).mul_add(v - u, u)
     }
 }

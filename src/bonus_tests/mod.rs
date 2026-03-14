@@ -1,3 +1,27 @@
 pub mod bonus_ex00;
+pub mod bonus_ex01;
+pub mod bonus_ex02;
+pub mod bonus_ex03;
+pub mod bonus_ex04;
+pub mod bonus_ex05;
+pub mod bonus_ex06;
+pub mod bonus_ex07;
+pub mod bonus_ex08;
+pub mod bonus_ex09;
+pub mod bonus_ex10;
+pub mod bonus_ex11;
+pub mod bonus_ex12;
 
 pub use bonus_ex00::bonus_ex00;
+pub use bonus_ex01::bonus_ex01;
+pub use bonus_ex02::bonus_ex02;
+pub use bonus_ex03::bonus_ex03;
+pub use bonus_ex04::bonus_ex04;
+pub use bonus_ex05::bonus_ex05;
+pub use bonus_ex06::bonus_ex06;
+pub use bonus_ex07::bonus_ex07;
+pub use bonus_ex08::bonus_ex08;
+pub use bonus_ex09::bonus_ex09;
+pub use bonus_ex10::bonus_ex10;
+pub use bonus_ex11::bonus_ex11;
+pub use bonus_ex12::bonus_ex12;

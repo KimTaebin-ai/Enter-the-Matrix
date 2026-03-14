@@ -39,7 +39,13 @@ fn run_complex_tests() {
     println!("--- Running Bonus Tests (Complex Number) ---");
     
     let bonus_tests: Vec<(&str, fn())> = vec![
-        ("ex00 (Complex): ", bonus_ex00),
+        ("ex00 (Complex): ", bonus_ex00), ("ex01 (Complex): ", bonus_ex01),
+        ("ex02 (Complex): ", bonus_ex02), ("ex03 (Complex): ", bonus_ex03),
+        ("ex04 (Complex): ", bonus_ex04), ("ex05 (Complex): ", bonus_ex05),
+        ("ex06 (Complex): ", bonus_ex06), ("ex07 (Complex): ", bonus_ex07),
+        ("ex08 (Complex): ", bonus_ex08), ("ex09 (Complex): ", bonus_ex09),
+        ("ex10 (Complex): ", bonus_ex10), ("ex11 (Complex): ", bonus_ex11),
+        ("ex12 (Complex): ", bonus_ex12),
     ];
 
     for (title, test) in bonus_tests {

@@ -9,10 +9,10 @@ pub struct Vector<K> {
 }
 
 impl<K> fmt::Display for Vector<K>
-where K: fmt::Display {
+where K: fmt::Display + Operations {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for val in &self.data {
-            writeln!(f, "[{:.1}]", val)?;
+            writeln!(f, "[{}]", val.fmt_precision())?;
         }
         Ok(())
     }
@@ -20,19 +20,16 @@ where K: fmt::Display {
 
 pub struct DisplayScalar<K>(pub K);
 
-impl fmt::Display for DisplayScalar<f32> {
+impl<K> fmt::Display for DisplayScalar<K> 
+where 
+    K: Operations 
+{
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let i = self.0 as i32;
-        if self.0 == (i as f32) {
-            write!(f, "{:.1}", self.0)
-        } else {
-            write!(f, "{}", self.0)
-        }
+        write!(f, "{}", self.0.fmt_precision())
     }
 }
 
 impl<K> Vector<K> {
-    // 벡터의 크기(Size) 반환
     pub fn size(&self) -> usize {
         self.data.len()
     }
@@ -85,9 +82,11 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
 
 }
 
-
 impl<K> Vector<K>
-where K: AddAssign + SubAssign + MulAssign + Copy + Default + Operations + fmt::Display {
+where K: Copy + Default + 
+        Operations + fmt::Display +
+        AddAssign + SubAssign + MulAssign +
+{
     pub fn dot(&self, v: &Vector<K>) -> DisplayScalar<K> {
         let self_size = self.size();
         let other_size = v.size();
@@ -102,10 +101,33 @@ where K: AddAssign + SubAssign + MulAssign + Copy + Default + Operations + fmt::
         let mut sum = K::default();
         for i in 0..self_size {
             // sum = self[i] * v[i] + sum
-            sum = K::fma(self.data[i], v.data[i], sum);
+            sum = K::fma(self.data[i], v.data[i].conj(), sum);
         }
 
         DisplayScalar(sum)
+    }
+
+    pub fn norm_1(&self) -> DisplayScalar<K> {
+        let mut sum = 0.0;
+        for val in &self.data {
+            sum += val.abs().get_re(); 
+        }
+        DisplayScalar(K::from_f32(sum))
+    }
+
+    pub fn norm(&self) -> DisplayScalar<K> {
+        let dot_res = self.dot(self);
+        let dot_val = dot_res.0.get_re();
+        DisplayScalar(K::from_f32(dot_val.sqrt()))
+    }
+
+    pub fn norm_inf(&self) -> DisplayScalar<K> {
+        let mut max_val = 0.0;
+        for val in &self.data {
+            let mag = val.abs().get_re();
+            if mag > max_val { max_val = mag; }
+        }
+        DisplayScalar(K::from_f32(max_val))
     }
 }
 
@@ -140,11 +162,13 @@ where K: Copy + Default + Operations + AddAssign + SubAssign + MulAssign {
     Vector::from(result_data)
 }
 
-impl<K> Lerp<K> for Vector<K> 
+impl<K> Lerp<f32> for Vector<K> 
 where 
-    K: Copy + Default + Operations + AddAssign + SubAssign + MulAssign + Sub<Output = K>
+    K: Copy + Default + Operations + 
+    AddAssign + SubAssign + MulAssign + 
+    Sub<Output = K> + Lerp<f32>
 {
-    fn lerp(u: Self, v: Self, t: K) -> Self {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
         let size = u.size();
         
         if size != v.size() {
@@ -156,8 +180,7 @@ where
         for i in 0..size {
             // 선형 보간 수식: u + t * (v - u)
             // K::fma(t, v - u, u)
-            let diff = v.data[i] - u.data[i];
-            let lerped = K::fma(t, diff, u.data[i]);
+            let lerped = K::lerp(u.data[i], v.data[i], t);
             res_data.push(lerped);
         }
 
@@ -165,45 +188,10 @@ where
     }
 }
 
-impl<K> Vector<K>
-where 
-    K: Copy + Default + Operations + PartialOrd + Add<Output = K> + Sub<Output = K>
-{
-    pub fn norm_1(&self) -> DisplayScalar<K> {
-        let mut res = K::default();
-        for &val in &self.data {
-            // res = 1 * |val| + res
-            res = K::fma(K::default(), K::default(), res + val.abs());
-        }
-        DisplayScalar(res)
-    }
-
-    pub fn norm(&self) -> DisplayScalar<K> {
-        let mut squared_sum = K::default();
-        for &val in &self.data {
-            // squared_sum = val * val + squared_sum
-            squared_sum = K::fma(val, val, squared_sum);
-        }
-        DisplayScalar(squared_sum.sqrt())
-    }
-
-    pub fn norm_inf(&self) -> DisplayScalar<K> {
-        let mut res = K::default();
-        for &val in &self.data {
-            let abs_val = val.abs();
-            if abs_val > res {
-                res = abs_val;
-            }
-        }
-        DisplayScalar(res)
-    }
-}
-
 pub fn angle_cos<K>(u: &Vector<K>, v: &Vector<K>) -> DisplayScalar<K> 
 where 
-    K: Copy + Default + Operations + PartialOrd +
+    K: Copy + Default + Operations + PartialOrd + fmt::Display +
     AddAssign + SubAssign + MulAssign +
-    std::fmt::Display +
     Add<Output = K> + Sub<Output = K> + Div<Output = K> + Mul<Output = K>
 {
     let dot_prod = u.dot(v).0;
@@ -218,7 +206,7 @@ where
     }
 
     // 코사인 값 도출: (u · v) / (||u|| * ||v||)
-    let res = dot_prod / (norm_u * norm_v);
+    let res = K::from_f32(dot_prod.get_re() / (norm_u.get_re() * norm_v.get_re()));
 
     DisplayScalar(res)
 }

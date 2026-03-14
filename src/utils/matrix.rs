@@ -15,7 +15,7 @@ impl<K> fmt::Display for Matrix<K>
 where 
     K: Operations
 {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for row in &self.data {
             write!(f, "[")?;
             for (i, val) in row.iter().enumerate() {
@@ -112,11 +112,14 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
     
 }
 
-impl<K> Lerp<K> for Matrix<K> 
+impl<K> Lerp<f32> for Matrix<K> 
 where 
-    K: Copy + Default + Operations + AddAssign<K> + SubAssign<K> + MulAssign<K> + Sub<Output = K> 
+    K: Copy + Default + Operations + 
+    AddAssign<K> + SubAssign<K> + MulAssign<K> + 
+    Sub<Output = K> + Lerp<f32>,
+    Vector<K>: Lerp<f32>
 {
-    fn lerp(u: Self, v: Self, t: K) -> Self {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
         let u_shape = u.shape();
         let v_shape = v.shape();
 
@@ -132,7 +135,9 @@ where
             .map(|(row_u, row_v)| {
                 let u_vec = Vector::from(row_u);
                 let v_vec = Vector::from(row_v);
-                Vector::lerp(u_vec, v_vec, t).data
+                
+                let lerped_vec = Vector::lerp(u_vec, v_vec, t);
+                lerped_vec.data
             })
             .collect();
 
@@ -343,12 +348,17 @@ where
         Matrix::from(res_data)
     }
 
-    pub fn determinant(&self) -> K {
+    pub fn determinant(&self) -> DisplayScalar<K> {
         if !self.is_square() { panic!("Matrix must be square"); }
         // 여기서도 두 번째 자리를 비워줍니다.
         let (_, _, swap_count, pivot_prod) = self.gauss_jordan_engine(None);
         
-        if swap_count % 2 == 0 { pivot_prod } else { -pivot_prod }
+        if swap_count % 2 == 0 { 
+            DisplayScalar(pivot_prod)
+        } 
+        else { 
+            DisplayScalar(-pivot_prod)
+        }
     }
 
     pub fn inverse(&self) -> Matrix<K> {

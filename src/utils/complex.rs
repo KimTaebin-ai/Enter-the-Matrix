@@ -1,4 +1,7 @@
-use std::ops::{Add, Sub, Mul, Div, AddAssign, SubAssign, MulAssign, DivAssign};
+use crate::utils::{Operations};
+use std::ops::{Add, Sub, Mul, Div, Neg, 
+    AddAssign, SubAssign, MulAssign, DivAssign};
+use std::fmt;
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 pub struct Complex {
@@ -9,6 +12,10 @@ pub struct Complex {
 impl Complex {
     pub fn new(re: f32, im: f32) -> Self {
         Self { re, im }
+    }
+
+    pub fn mul_add(self, a: Self, b: Self) -> Self {
+        <Self as Operations>::fma(self, a, b)
     }
 }
 
@@ -51,11 +58,39 @@ impl Div for Complex {
     }
 }
 
-impl std::fmt::Display for Complex {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:.1} + {:.1}i", self.re, self.im)
+impl Neg for Complex {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        Self {
+            re: -self.re,
+            im: -self.im,
+        }
     }
 }
+
+impl fmt::Display for Complex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let is_re_int = self.re.fract() == 0.0;
+        let is_im_int = self.im.fract() == 0.0;
+        
+        let re_str = if is_re_int {
+            format!("{:.1}", self.re)
+        } else {
+            format!("{}", self.re)
+        };
+
+        let im_str = if is_im_int {
+            format!("{:.1}", self.im)
+        } else {
+            format!("{}", self.im)
+        };
+
+        write!(f, "{} + {}i", re_str, im_str)
+    }
+}
+
+
 
 impl AddAssign for Complex {
     fn add_assign(&mut self, rhs: Self) {
