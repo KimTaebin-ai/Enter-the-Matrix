@@ -30,33 +30,54 @@ impl fmt::Display for DisplayScalar<f32> {
     }
 }
 
+impl<K> Vector<K> {
+    // 벡터의 크기(Size) 반환
+    pub fn size(&self) -> usize {
+        self.data.len()
+    }
+}
+
 impl<K> Vector<K> 
 where K: AddAssign + SubAssign + MulAssign + Copy {
     pub fn from(data: Vec<K>) -> Self {
         Vector { data }
     }
     
-    pub fn add(&mut self, v: Vector<K>) {
-        if self.data.len() != v.data.len() {
-            panic!("Vector sizes must match for addition");
+    pub fn add(&mut self, v: &Vector<K>) {
+        let self_size = self.size();
+        let other_size = v.size();
+
+        if self_size != other_size {
+            panic!(
+                "Vector sizes must match for addition: {} != {}", 
+                self_size, other_size
+            );
         }
 
-        for i in 0..self.data.len() {
+        for i in 0..self_size {
             self.data[i] += v.data[i];
         }
     }
-    pub fn sub(&mut self, v: Vector<K>) {
-        if self.data.len() != v.data.len() {
-            panic!("Vector sizes must match for subtraction");
+
+    pub fn sub(&mut self, v: &Vector<K>) {
+        let self_size = self.size();
+        let other_size = v.size();
+
+        if self_size != other_size {
+            panic!(
+                "Vector sizes must match for subtraction: {} != {}", 
+                self_size, other_size
+            );
         }
 
-        for i in 0..self.data.len() {
+        for i in 0..self_size {
             self.data[i] -= v.data[i];
         }
     }
 
     pub fn scl(&mut self, a: K) {
-        for i in 0..self.data.len() {
+        let self_size = self.size();
+        for i in 0..self_size {
             self.data[i] *= a;
         }
     }

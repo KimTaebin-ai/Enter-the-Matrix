@@ -2,14 +2,6 @@
 // K 는 abstract algebra 로 봤을 때 scalar 의 체로 볼 수 있음.
 
 /**
- * We recommend you to implement some utility functions, such as:
-• A function to return the size/shape of a vector/matrix.
-• A function to tell if a matrix is square.
-• A function to print a vector/matrix on the standard output.
-• A function to reshape a vector into a matrix, and vice-versa.
- */
-
-/**
  * Display notation 관련
  * ‘\u{23A1}’, ‘\u{23A2}’, ‘\u{23A3}’, ‘\u{23A4}’, ‘\u{23A6}’
  */

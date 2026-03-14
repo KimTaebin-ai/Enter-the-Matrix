@@ -5,6 +5,13 @@ use crate::utils::vector::DisplayScalar;
 
 use super::{Vector, Lerp};
 
+/**
+ * We recommend you to implement some utility functions, such as:
+• A function to return the size/shape of a vector/matrix.
+• A function to tell if a matrix is square.
+• A function to print a vector/matrix on the standard output.
+• A function to reshape a vector into a matrix, and vice-versa.
+ */
 
 #[derive(Clone)]
 pub struct Matrix<K> {
@@ -37,6 +44,20 @@ where
     }
 }
 
+impl<K> Matrix<K> {
+    // 행렬의 크기(Shape) 반환: (rows, cols)
+    pub fn shape(&self) -> (usize, usize) {
+        let rows = self.data.len();
+        let cols = if rows > 0 { self.data[0].len() } else { 0 };
+        (rows, cols)
+    }
+
+    // 정사각 행렬(Square Matrix) 여부 확인
+    pub fn is_square(&self) -> bool {
+        let (rows, cols) = self.shape();
+        rows > 0 && rows == cols
+    }
+}
 
 impl<K> Matrix<K> 
 where K: AddAssign + SubAssign + MulAssign + Copy {
@@ -48,20 +69,37 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
         Matrix { data: matrix_data }
     }
 
-    pub fn add(&mut self, v: Matrix<K>) {
-        // if self.data.len() != v.data.len() {
-        //     panic!("Vector sizes must match for addition");
-        // }
+    pub fn add(&mut self, v: &Matrix<K>) {
+        let self_shape = self.shape();
+        let other_shape = v.shape();
 
-        for i in 0..self.data.len() {
-            for j in 0..self.data[i].len() {
+        if self_shape != other_shape {
+            panic!(
+                "Matrix shapes must match for addition: {:?} != {:?}", 
+                self_shape, other_shape
+            );
+        }
+
+        for i in 0..self_shape.0 {
+            for j in 0..self_shape.1 {
                 self.data[i][j] += v.data[i][j];
             }
         }
     }
-    pub fn sub(&mut self, v: Matrix<K>) {
-        for i in 0..self.data.len() {
-            for j in 0..self.data[i].len() {
+    
+    pub fn sub(&mut self, v: &Matrix<K>) {
+        let self_shape = self.shape();
+        let other_shape = v.shape();
+
+        if self_shape != other_shape {
+            panic!(
+                "Matrix shapes must match for subtraction: {:?} != {:?}", 
+                self_shape, other_shape
+            );
+        }
+
+        for i in 0..self_shape.0 {
+            for j in 0..self_shape.1 {
                 self.data[i][j] -= v.data[i][j];
             }
         }
