@@ -1,4 +1,5 @@
 use std::ops::{AddAssign, MulAssign, SubAssign};
+use std::ops::{Add, Sub, Mul};
 use std::fmt;
 use super::Operations;
 use super::Lerp;
@@ -43,7 +44,7 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
         Vector { data }
     }
     
-    pub fn add(&mut self, v: &Vector<K>) {
+    pub fn add(&mut self, v: Vector<K>) {
         let self_size = self.size();
         let other_size = v.size();
 
@@ -59,7 +60,7 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
         }
     }
 
-    pub fn sub(&mut self, v: &Vector<K>) {
+    pub fn sub(&mut self, v: Vector<K>) {
         let self_size = self.size();
         let other_size = v.size();
 
@@ -107,28 +108,53 @@ where K: Copy + Default + Operations + AddAssign + SubAssign + MulAssign {
         return Vector { data: vec![] };
     }
 
-    let size = vectors[0].data.len();
-
-    let mut result = Vec::with_capacity(size);
-
-    for i in 0..size {
-        let mut sum = K::default();
-        for (v, &scalar) in vectors.iter().zip(coefs.iter()) {
-            sum = K::fma(v.data[i], scalar, sum);
-        }
-        result.push(sum);
+    if vectors.len() != coefs.len() {
+        panic!(
+            "Number of vectors and coefficients must match: {} != {}", 
+            vectors.len(), coefs.len()
+        );
     }
 
-    Vector::from(result)
+    let vector_size = vectors[0].size();
+
+    if !vectors.iter().all(|v| v.size() == vector_size) {
+        panic!("All vectors in linear_combination must have the same size");
+    }
+
+    let mut result_data = vec![K::default(); vector_size];
+
+    for (v, &scalar) in vectors.iter().zip(coefs.iter()) {
+        for i in 0..vector_size {
+            // result[i] = v.data[i] * scalar + result[i]
+            result_data[i] = K::fma(v.data[i], scalar, result_data[i]);
+        }
+    }
+
+    Vector::from(result_data)
 }
 
-impl Lerp<f32> for Vector<f32> {
-    fn lerp(u: Self, v: Self, t: f32) -> Self {
-        let mut data = Vec::with_capacity(u.data.len());
-        for i in 0..u.data.len() {
-            data.push(f32::lerp(u.data[i], v.data[i], t));
+impl<K> Lerp<K> for Vector<K> 
+where 
+    K: Copy + Default + Operations + AddAssign + SubAssign + MulAssign + Sub<Output = K>
+{
+    fn lerp(u: Self, v: Self, t: K) -> Self {
+        let size = u.size();
+        
+        if size != v.size() {
+            panic!("Vector sizes must match for lerp: {} != {}", size, v.size());
         }
-        Vector::from(data)
+
+        let mut res_data = Vec::with_capacity(size);
+
+        for i in 0..size {
+            // 선형 보간 수식: u + t * (v - u)
+            // K::fma(t, v - u, u)
+            let diff = v.data[i] - u.data[i];
+            let lerped = K::fma(t, diff, u.data[i]);
+            res_data.push(lerped);
+        }
+
+        Vector::from(res_data)
     }
 }
 

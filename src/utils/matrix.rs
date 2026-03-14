@@ -69,7 +69,7 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
         Matrix { data: matrix_data }
     }
 
-    pub fn add(&mut self, v: &Matrix<K>) {
+    pub fn add(&mut self, v: Matrix<K>) {
         let self_shape = self.shape();
         let other_shape = v.shape();
 
@@ -87,7 +87,7 @@ where K: AddAssign + SubAssign + MulAssign + Copy {
         }
     }
     
-    pub fn sub(&mut self, v: &Matrix<K>) {
+    pub fn sub(&mut self, v: Matrix<K>) {
         let self_shape = self.shape();
         let other_shape = v.shape();
 
