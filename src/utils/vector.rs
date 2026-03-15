@@ -67,7 +67,7 @@ where
     }
 
     pub fn norm(&self) -> DisplayScalar<K> {
-        DisplayScalar(K::from_f32(self.dot(self).0.get_re().sqrt()))
+        DisplayScalar(K::from_f32(self.dot(self).0.get_re().powf(0.5)))
     }
 
     pub fn norm_inf(&self) -> DisplayScalar<K> {

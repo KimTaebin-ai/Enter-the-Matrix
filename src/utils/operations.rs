@@ -1,6 +1,5 @@
 use crate::utils::Complex;
 
-/// f32를 정수면 `"1.0"`, 소수면 `"1.5"` 형식으로 변환
 pub(crate) fn fmt_f32(val: f32) -> String {
     if val.fract() == 0.0 { format!("{:.1}", val) } else { format!("{}", val) }
 }
@@ -16,7 +15,7 @@ pub trait Operations: Sized {
 
 impl Operations for f32 {
     fn fma(a: Self, b: Self, c: Self) -> Self { a.mul_add(b, c) }
-    fn abs(self) -> Self { f32::abs(self) }
+    fn abs(self) -> Self { if self < 0.0 { -self } else { self } }
     fn from_f32(val: f32) -> Self { val }
     fn fmt_precision(&self) -> String { fmt_f32(*self) }
     fn get_re(self) -> f32 { self }
@@ -24,21 +23,26 @@ impl Operations for f32 {
 
 impl Operations for Complex {
     fn fma(a: Self, b: Self, c: Self) -> Self {
-        Complex::new(
-            a.re * b.re - a.im * b.im + c.re,
-            a.re * b.im + a.im * b.re + c.im,
-        )
+        // 실수부: (a.re * b.re) + (-a.im * b.im + c.re)
+        let re = a.re.mul_add(b.re, -a.im * b.im + c.re);
+
+        // 허수부: (a.re * b.im) + (a.im * b.re + c.im)
+        let im = a.re.mul_add(b.im, a.im * b.re + c.im);
+
+        Complex::new(re, im)
     }
 
     fn abs(self) -> Self {
-        Complex::new((self.re * self.re + self.im * self.im).sqrt(), 0.0)
+        let magnitude = (self.re * self.re + self.im * self.im).powf(0.5);
+        Complex::new(magnitude, 0.0)
     }
 
     fn from_f32(val: f32) -> Self { Complex::new(val, 0.0) }
 
     fn fmt_precision(&self) -> String {
         let re_str = fmt_f32(self.re);
-        let im_str = fmt_f32(self.im.abs());
+        let abs_im = Operations::abs(self.im);
+        let im_str = fmt_f32(abs_im);
         if self.im >= 0.0 { format!("{} + {}i", re_str, im_str) }
         else               { format!("{} - {}i", re_str, im_str) }
     }
