@@ -2,7 +2,7 @@ use std::fmt;
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub, SubAssign};
 use super::{Lerp, Operations};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Vector<K> {
     pub(crate) data: Vec<K>,
 }
@@ -82,7 +82,7 @@ where
 
 pub fn linear_combination<K>(vectors: &[Vector<K>], coefs: &[K]) -> Vector<K>
 where
-    K: Copy + Default + Operations + AddAssign + SubAssign + MulAssign,
+    K: Copy + Default + Operations + AddAssign + MulAssign,
 {
     assert!(!vectors.is_empty(), "vectors must not be empty");
     assert_eq!(vectors.len(), coefs.len(), "vectors and coefs length must match");
