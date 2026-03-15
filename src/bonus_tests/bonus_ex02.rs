@@ -1,9 +1,4 @@
-use crate::utils::{Vector, Matrix, Complex, Lerp};
-
-pub fn lerp<V>(u: V, v: V, t: f32) -> V 
-where V: Lerp<f32> {
-    V::lerp(u, v, t)
-}
+use crate::utils::{Vector, Matrix, Complex, lerp};
 
 pub fn bonus_ex02() {
     let c1 = Complex::new(0., 0.);

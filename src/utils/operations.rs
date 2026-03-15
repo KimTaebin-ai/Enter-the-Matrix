@@ -55,6 +55,10 @@ pub trait Lerp<T> {
     fn lerp(u: Self, v: Self, t: T) -> Self;
 }
 
+pub fn lerp<V: Lerp<f32>>(u: V, v: V, t: f32) -> V {
+    V::lerp(u, v, t)
+}
+
 impl Lerp<f32> for f32 {
     fn lerp(u: Self, v: Self, t: f32) -> Self { t.mul_add(v - u, u) }
 }

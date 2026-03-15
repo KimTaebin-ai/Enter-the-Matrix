@@ -6,12 +6,7 @@
  * - Maximum time complexity : O(n)
  * - Maximum space complexity : O(n)
  */
-use crate::utils::{Vector, Matrix, Lerp};
-
-pub fn lerp<V>(u: V, v: V, t: f32) -> V 
-where V: Lerp<f32> {
-    V::lerp(u, v, t)
-}
+use crate::utils::{Vector, Matrix, lerp};
 
 pub fn ex02() {
     println!("{:.1}", lerp(0., 1., 0.));

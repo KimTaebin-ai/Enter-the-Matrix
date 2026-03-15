@@ -8,3 +8,4 @@ pub use matrix::Matrix;
 pub use complex::Complex;
 pub use operations::Operations;
 pub use operations::Lerp;
+pub use operations::lerp;
