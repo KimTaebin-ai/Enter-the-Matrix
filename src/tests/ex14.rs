@@ -10,7 +10,7 @@
 use crate::utils::{Matrix};
 
 pub fn ex14() {
-    let fov = 90.0;          // 시야각 (Degree)
+    let fov = 70.0;          // 시야각 (Degree)
     let ratio = 1.0;         // 가로세로비 (1:1)
     let near = 0.1;          // 근평면
     let far = 100.0;         // 원평면
